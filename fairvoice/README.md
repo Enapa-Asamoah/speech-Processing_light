@@ -26,37 +26,55 @@ This project develops fair, interpretable, and trustworthy emotion recognition m
 
 ```
 fairvoice/
-├── src/                    # Source code
-│   ├── data/              # Data loading and preprocessing
-│   ├── models/            # Model architectures
-│   ├── training/          # Training scripts
+├── README.md              # This file
+├── IMPLEMENTATION.md      # Detailed implementation guide
+├── STRUCTURE.md           # Project structure explanation
+├── requirements.txt       # Python dependencies
+│
+├── code/                  # Source code (organized by functionality)
+│   ├── data/             # Data loading with demographic metadata
+│   ├── models/           # Model architectures
+│   ├── training/         # Training utilities
 │   ├── bias_mitigation/  # Bias mitigation techniques
-│   ├── explainability/  # Explainability tools
-│   ├── evaluation/        # Evaluation and fairness metrics
-│   └── utils/             # Utility functions
+│   ├── explainability/   # Explainability tools
+│   └── evaluation/       # Evaluation and fairness metrics
+│
+├── scripts/               # Main executable scripts (run in order)
+│   ├── 01_prepare_data.py
+│   ├── 02_train_baseline.py
+│   ├── 03_assess_bias.py
+│   ├── 04_mitigate_bias.py
+│   ├── 05_evaluate_fairness.py
+│   └── 06_generate_report.py
+│
 ├── configs/               # Configuration files
-├── experiments/           # Experiment tracking
-│   ├── baseline/         # Baseline model experiments
-│   ├── fairness_aware/   # Fairness-aware model experiments
-│   └── adversarial/      # Adversarial debiasing experiments
+│   ├── baseline.yaml
+│   ├── fairness.yaml
+│   └── adversarial.yaml
+│
 ├── data/                  # Dataset storage
 │   ├── raw/              # Original datasets
 │   ├── processed/        # Preprocessed audio
-│   ├── features/         # Extracted features
 │   └── metadata/         # Demographic metadata
-├── notebooks/             # Jupyter notebooks
-│   ├── bias_analysis/    # Bias assessment notebooks
-│   ├── explainability/   # Explainability analysis
-│   └── fairness_evaluation/ # Fairness evaluation
-├── tests/                 # Unit and integration tests
-├── docs/                  # Documentation
-│   ├── paper/            # Research paper drafts
-│   ├── ethics/           # Ethical considerations
-│   └── bias_reports/     # Generated bias reports
-├── scripts/               # Standalone scripts
-├── outputs/               # Model outputs, logs, plots
-└── benchmarks/           # Fairness benchmarks
+│
+├── results/               # All outputs for technical report
+│   ├── models/           # Trained model checkpoints
+│   ├── plots/            # Visualizations
+│   ├── tables/           # Performance and bias metrics
+│   └── reports/          # Bias assessment reports
+│
+├── notebooks/             # Jupyter notebooks for analysis
+│   ├── 01_bias_analysis.ipynb
+│   ├── 02_explainability.ipynb
+│   └── 03_fairness_comparison.ipynb
+│
+└── report/                # Technical report materials
+    ├── figures/
+    ├── tables/
+    └── draft/
 ```
+
+See `STRUCTURE.md` for detailed explanation of the project structure.
 
 ## Quick Start
 
@@ -71,40 +89,45 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Data Preparation
+### Running the Pipeline
 
-1. Download datasets (CREMA-D, RAVDESS, Emo-DB)
-2. Extract demographic metadata
-3. Run preprocessing pipeline:
-```bash
-python scripts/preprocessing/prepare_data.py --dataset CREMA-D --extract_metadata
-```
-
-### Bias Assessment
+The project follows a simple step-by-step workflow:
 
 ```bash
-python scripts/bias_assessment/assess_bias.py --model_path outputs/models/baseline.pth
+# Step 1: Prepare data with demographic metadata
+python scripts/01_prepare_data.py --dataset CREMA-D
+
+# Step 2: Train baseline model
+python scripts/02_train_baseline.py --config configs/baseline.yaml
+
+# Step 3: Assess bias in baseline model
+python scripts/03_assess_bias.py
+
+# Step 4: Apply bias mitigation
+python scripts/04_mitigate_bias.py --method adversarial
+
+# Step 5: Evaluate fairness metrics
+python scripts/05_evaluate_fairness.py
+
+# Step 6: Generate comprehensive bias report
+python scripts/06_generate_report.py
 ```
 
-### Training Fairness-Aware Models
+### Using Notebooks
+
+For interactive analysis:
 
 ```bash
-# Data balancing approach
-python scripts/training/train_fair.py --strategy data_balancing --config configs/fairness_config.yaml
-
-# Adversarial debiasing
-python scripts/training/train_fair.py --strategy adversarial --config configs/adversarial_config.yaml
-
-# Reweighting approach
-python scripts/training/train_fair.py --strategy reweighting --config configs/reweighting_config.yaml
+jupyter notebook notebooks/01_bias_analysis.ipynb
 ```
 
-### Explainability Analysis
+### Results
 
-```bash
-python scripts/explainability/generate_shap_plots.py --model_path outputs/models/fair_model.pth
-python scripts/explainability/generate_gradcam.py --model_path outputs/models/fair_model.pth
-```
+All outputs are saved in the `results/` directory:
+- `results/models/` - Trained models
+- `results/plots/` - Bias visualizations and explainability plots
+- `results/tables/` - Fairness metrics and performance tables
+- `results/reports/` - Comprehensive bias assessment reports
 
 ## Datasets
 

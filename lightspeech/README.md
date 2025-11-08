@@ -25,40 +25,52 @@ This project develops lightweight, efficient, and explainable emotion recognitio
 
 ```
 lightspeech/
-├── src/                    # Source code
-│   ├── data/              # Data loading and preprocessing
-│   ├── models/            # Model architectures (baseline, compressed)
-│   ├── training/          # Training scripts and loops
-│   ├── compression/       # Compression techniques (distillation, quantization, pruning)
-│   ├── evaluation/        # Evaluation metrics and benchmarking
-│   ├── deployment/        # Deployment utilities and conversion
-│   └── utils/             # Utility functions
+├── README.md              # This file
+├── IMPLEMENTATION.md       # Detailed implementation guide
+├── STRUCTURE.md            # Project structure explanation
+├── requirements.txt        # Python dependencies
+│
+├── code/                  # Source code (organized by functionality)
+│   ├── data/             # Data loading and preprocessing
+│   ├── models/           # Model architectures
+│   ├── training/         # Training utilities
+│   └── evaluation/       # Evaluation metrics
+│
+├── scripts/               # Main executable scripts (run in order)
+│   ├── 01_prepare_data.py
+│   ├── 02_train_baseline.py
+│   ├── 03_compress_model.py
+│   ├── 04_evaluate.py
+│   └── 05_generate_plots.py
+│
 ├── configs/               # Configuration files (YAML)
-├── experiments/           # Experiment tracking and results
-│   ├── baseline/         # Baseline model experiments
-│   ├── compressed/       # Compressed model experiments
-│   ├── distilled/        # Knowledge distillation experiments
-│   └── quantized/        # Quantization experiments
+│   ├── baseline.yaml
+│   ├── distillation.yaml
+│   └── quantization.yaml
+│
 ├── data/                  # Dataset storage
-│   ├── raw/              # Original datasets
+│   ├── raw/              # Original datasets (download here)
 │   ├── processed/        # Preprocessed audio
 │   └── features/         # Extracted features
-├── notebooks/             # Jupyter notebooks
-│   ├── exploration/      # Data exploration
-│   ├── analysis/         # Results analysis
-│   └── interpretability/ # Model interpretability
-├── tests/                 # Unit and integration tests
-├── docs/                  # Documentation
-│   ├── paper/            # Research paper drafts
-│   ├── api/              # API documentation
-│   └── deployment/       # Deployment guides
-├── scripts/               # Standalone scripts
-├── outputs/               # Model outputs, logs, plots
-└── deployment/           # Deployment configurations
-    ├── raspberry_pi/
-    ├── android/
-    └── jetson/
+│
+├── results/               # All outputs for technical report
+│   ├── models/           # Trained model checkpoints
+│   ├── plots/            # Figures and visualizations
+│   ├── tables/           # Performance tables
+│   └── logs/             # Training logs
+│
+├── notebooks/             # Jupyter notebooks for analysis
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_model_comparison.ipynb
+│   └── 03_interpretability.ipynb
+│
+└── report/                # Technical report materials
+    ├── figures/          # Report figures
+    ├── tables/           # Report tables
+    └── draft/            # Report draft
 ```
+
+See `STRUCTURE.md` for detailed explanation of the project structure.
 
 ## Quick Start
 
@@ -73,32 +85,41 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Data Preparation
+### Running the Pipeline
 
-1. Download datasets (CREMA-D, RAVDESS, or Emo-DB)
-2. Run preprocessing pipeline:
-```bash
-python scripts/preprocessing/prepare_data.py --dataset CREMA-D --output_dir data/processed
-```
-
-### Training Baseline Model
+The project follows a simple step-by-step workflow. Run scripts in order:
 
 ```bash
-python scripts/training/train_baseline.py --config configs/baseline_config.yaml
+# Step 1: Prepare data
+python scripts/01_prepare_data.py --dataset CREMA-D
+
+# Step 2: Train baseline model
+python scripts/02_train_baseline.py --config configs/baseline.yaml
+
+# Step 3: Compress model
+python scripts/03_compress_model.py --method distillation
+
+# Step 4: Evaluate models
+python scripts/04_evaluate.py
+
+# Step 5: Generate plots for report
+python scripts/05_generate_plots.py
 ```
 
-### Model Compression
+### Using Notebooks
+
+For interactive analysis, use the Jupyter notebooks:
 
 ```bash
-# Knowledge Distillation
-python scripts/training/train_distilled.py --config configs/distillation_config.yaml
-
-# Quantization
-python scripts/training/train_quantized.py --config configs/quantization_config.yaml
-
-# Pruning
-python scripts/training/train_pruned.py --config configs/pruning_config.yaml
+jupyter notebook notebooks/01_data_exploration.ipynb
 ```
+
+### Results
+
+All outputs are saved in the `results/` directory:
+- `results/models/` - Trained model checkpoints
+- `results/plots/` - Visualizations for technical report
+- `results/tables/` - Performance metrics tables
 
 ## Datasets
 

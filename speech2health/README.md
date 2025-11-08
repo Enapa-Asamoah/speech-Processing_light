@@ -26,39 +26,55 @@ This project develops interpretable machine learning models that can detect stre
 
 ```
 speech2health/
-├── src/                    # Source code
-│   ├── data/              # Data loading and preprocessing
+├── README.md              # This file
+├── IMPLEMENTATION.md      # Detailed implementation guide
+├── STRUCTURE.md           # Project structure explanation
+├── requirements.txt       # Python dependencies
+│
+├── code/                  # Source code (organized by functionality)
+│   ├── data/             # Data loading and preprocessing
 │   ├── feature_extraction/ # Acoustic-prosodic feature extraction
-│   ├── models/            # Model architectures
-│   ├── training/          # Training scripts
-│   ├── evaluation/        # Evaluation metrics
-│   ├── interpretability/  # Model interpretability
-│   └── utils/             # Utility functions
+│   ├── models/           # Model architectures (ML and neural)
+│   ├── training/         # Training utilities
+│   ├── evaluation/       # Evaluation metrics
+│   └── interpretability/ # Biomarker analysis
+│
+├── scripts/               # Main executable scripts (run in order)
+│   ├── 01_prepare_data.py
+│   ├── 02_extract_features.py
+│   ├── 03_train_classical.py
+│   ├── 04_train_neural.py
+│   ├── 05_evaluate.py
+│   └── 06_identify_biomarkers.py
+│
 ├── configs/               # Configuration files
-├── experiments/           # Experiment tracking
-│   ├── classical_ml/     # Classical ML experiments
-│   ├── neural_networks/   # Neural network experiments
-│   └── ensemble/         # Ensemble model experiments
+│   ├── random_forest.yaml
+│   ├── xgboost.yaml
+│   └── cnn_lstm.yaml
+│
 ├── data/                  # Dataset storage
 │   ├── raw/              # Original datasets
 │   ├── processed/        # Preprocessed audio
-│   ├── features/         # Extracted features
-│   └── biomarkers/       # Identified biomarkers
-├── notebooks/             # Jupyter notebooks
-│   ├── exploration/      # Data exploration
-│   ├── feature_analysis/ # Feature importance analysis
-│   └── model_comparison/ # Model comparison
-├── tests/                 # Unit and integration tests
-├── docs/                  # Documentation
-│   ├── paper/            # Research paper drafts
-│   ├── clinical_validation/ # Clinical validation reports
-│   └── biomarker_analysis/ # Biomarker documentation
-├── scripts/               # Standalone scripts
-├── outputs/               # Model outputs, logs, plots
-└── demos/                 # Interactive demos
-    ├── flask/            # Flask web app
-    └── gradio/           # Gradio interface
+│   └── features/         # Extracted features
+│
+├── results/               # All outputs for technical report
+│   ├── models/           # Trained model checkpoints
+│   ├── plots/            # Visualizations
+│   ├── tables/           # Performance tables
+│   └── biomarkers/       # Biomarker analysis results
+│
+├── notebooks/             # Jupyter notebooks for analysis
+│   ├── 01_feature_analysis.ipynb
+│   ├── 02_model_comparison.ipynb
+│   └── 03_biomarker_visualization.ipynb
+│
+└── report/                # Technical report materials
+    ├── figures/
+    ├── tables/
+    └── draft/
 ```
+
+See `STRUCTURE.md` for detailed explanation of the project structure.
 
 ## Quick Start
 
@@ -73,38 +89,45 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Data Preparation
+### Running the Pipeline
 
-1. Download datasets (DAIC-WOZ, AVEC 2019, or SEMAINE)
-2. Run preprocessing pipeline:
-```bash
-python scripts/preprocessing/prepare_data.py --dataset DAIC-WOZ --output_dir data/processed
-```
-
-### Feature Extraction
+The project follows a simple step-by-step workflow:
 
 ```bash
-python scripts/feature_extraction/extract_features.py --input_dir data/processed --output_dir data/features
+# Step 1: Prepare audio data
+python scripts/01_prepare_data.py --dataset DAIC-WOZ
+
+# Step 2: Extract acoustic-prosodic features
+python scripts/02_extract_features.py
+
+# Step 3: Train classical ML models
+python scripts/03_train_classical.py --model random_forest
+
+# Step 4: Train neural network models
+python scripts/04_train_neural.py --model cnn_lstm
+
+# Step 5: Evaluate all models
+python scripts/05_evaluate.py
+
+# Step 6: Identify vocal biomarkers
+python scripts/06_identify_biomarkers.py
 ```
 
-### Training Models
+### Using Notebooks
+
+For interactive analysis:
 
 ```bash
-# Classical ML (Random Forest)
-python scripts/training/train_classical.py --model random_forest --config configs/random_forest_config.yaml
-
-# Neural Network (CNN-LSTM)
-python scripts/training/train_neural.py --model cnn_lstm --config configs/cnn_lstm_config.yaml
-
-# XGBoost
-python scripts/training/train_classical.py --model xgboost --config configs/xgboost_config.yaml
+jupyter notebook notebooks/01_feature_analysis.ipynb
 ```
 
-### Evaluation
+### Results
 
-```bash
-python scripts/evaluation/evaluate_models.py --model_dir outputs/models --test_data data/features/test
-```
+All outputs are saved in the `results/` directory:
+- `results/models/` - Trained model checkpoints
+- `results/plots/` - Feature importance plots and model comparisons
+- `results/tables/` - Performance metrics and biomarker tables
+- `results/biomarkers/` - Detailed biomarker analysis
 
 ## Datasets
 

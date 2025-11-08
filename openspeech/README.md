@@ -27,59 +27,53 @@ This project develops a complete voice assistant pipeline integrating Automatic 
 
 ```
 openspeech/
-├── src/                    # Source code
-│   ├── asr/               # Automatic Speech Recognition
-│   ├── nlu/               # Natural Language Understanding
-│   ├── tts/               # Text-to-Speech
-│   ├── integration/      # End-to-end integration
-│   ├── audio_processing/  # Audio utilities
-│   └── utils/             # Utility functions
+├── README.md              # This file
+├── IMPLEMENTATION.md      # Detailed implementation guide
+├── STRUCTURE.md           # Project structure explanation
+├── requirements.txt       # Python dependencies
+│
+├── code/                  # Source code (organized by component)
+│   ├── asr/              # Automatic Speech Recognition
+│   ├── nlu/              # Natural Language Understanding
+│   ├── tts/              # Text-to-Speech
+│   └── integration/      # End-to-end integration
+│
+├── scripts/               # Main executable scripts (run in order)
+│   ├── 01_setup_asr.py
+│   ├── 02_setup_nlu.py
+│   ├── 03_setup_tts.py
+│   ├── 04_integrate.py
+│   ├── 05_evaluate.py
+│   └── 06_demo.py
+│
 ├── configs/               # Configuration files
-│   ├── asr/              # ASR configurations
-│   ├── nlu/              # NLU configurations
-│   ├── tts/              # TTS configurations
-│   └── deployment/       # Deployment configs
-├── experiments/           # Experiment tracking
-│   ├── asr_models/       # ASR experiments
-│   ├── nlu_models/       # NLU experiments
-│   ├── tts_models/       # TTS experiments
-│   └── end_to_end/       # Full pipeline experiments
+│   ├── asr.yaml
+│   ├── nlu.yaml
+│   └── tts.yaml
+│
 ├── data/                  # Dataset storage
 │   ├── raw/              # Original datasets
 │   ├── processed/        # Preprocessed data
-│   ├── transcriptions/   # ASR transcriptions
-│   └── translations/     # Translation data
-├── notebooks/             # Jupyter notebooks
-│   ├── asr_analysis/     # ASR analysis
-│   ├── nlu_analysis/     # NLU analysis
-│   └── tts_analysis/     # TTS analysis
-├── tests/                 # Unit and integration tests
-│   ├── unit/             # Unit tests
-│   ├── integration/      # Integration tests
-│   └── e2e/              # End-to-end tests
-├── docs/                  # Documentation
-│   ├── paper/            # Research paper drafts
-│   ├── architecture/     # System architecture
-│   ├── deployment/       # Deployment guides
-│   └── api/              # API documentation
-├── scripts/               # Standalone scripts
-│   ├── preprocessing/    # Data preprocessing
-│   ├── training/         # Model training
-│   ├── conversion/      # Model conversion
-│   └── deployment/       # Deployment scripts
-├── outputs/               # Model outputs, logs
-│   ├── models/           # Trained models
-│   ├── logs/             # Training logs
-│   └── audio_samples/    # Generated audio samples
-├── deployment/           # Deployment configurations
-│   ├── mobile/           # Mobile app deployment
-│   ├── edge/             # Edge device deployment
-│   └── raspberry_pi/     # Raspberry Pi deployment
-└── demos/                 # Interactive demos
-    ├── cli/              # Command-line interface
-    ├── web/              # Web interface
-    └── voice_interface/  # Voice interaction demo
+│   └── transcriptions/   # ASR transcriptions
+│
+├── results/               # All outputs for technical report
+│   ├── models/           # Trained/fine-tuned models
+│   ├── plots/            # Performance visualizations
+│   ├── tables/           # Evaluation metrics
+│   └── audio_samples/    # Generated TTS samples
+│
+├── notebooks/             # Jupyter notebooks for analysis
+│   ├── 01_asr_analysis.ipynb
+│   ├── 02_nlu_analysis.ipynb
+│   └── 03_tts_analysis.ipynb
+│
+└── report/                # Technical report materials
+    ├── figures/
+    ├── tables/
+    └── draft/
 ```
+
+See `STRUCTURE.md` for detailed explanation of the project structure.
 
 ## Quick Start
 
@@ -97,35 +91,45 @@ pip install -r requirements.txt
 python scripts/setup/download_models.py --language en
 ```
 
-### Running Individual Components
+### Running the Pipeline
 
-#### ASR (Speech Recognition)
-```bash
-python -m src.asr.transcribe --audio_path data/raw/audio.wav --language en
-```
-
-#### NLU (Intent Recognition)
-```bash
-python -m src.nlu.predict_intent --text "What's the weather today?" --language en
-```
-
-#### TTS (Text-to-Speech)
-```bash
-python -m src.tts.synthesize --text "Hello, how are you?" --language en --output output.wav
-```
-
-### Running Full Pipeline
+The project follows a simple step-by-step workflow:
 
 ```bash
-# Command-line interface
-python demos/cli/voice_assistant.py --language en
+# Step 1: Setup ASR models
+python scripts/01_setup_asr.py --language en
 
-# Web interface
-python demos/web/app.py
+# Step 2: Setup NLU system
+python scripts/02_setup_nlu.py --language en
 
-# Gradio interface
-python demos/gradio/app.py
+# Step 3: Setup TTS models
+python scripts/03_setup_tts.py --language en
+
+# Step 4: Integrate all components
+python scripts/04_integrate.py
+
+# Step 5: Evaluate end-to-end performance
+python scripts/05_evaluate.py
+
+# Step 6: Run interactive demo
+python scripts/06_demo.py
 ```
+
+### Using Notebooks
+
+For interactive analysis:
+
+```bash
+jupyter notebook notebooks/01_asr_analysis.ipynb
+```
+
+### Results
+
+All outputs are saved in the `results/` directory:
+- `results/models/` - Trained/fine-tuned ASR, NLU, and TTS models
+- `results/plots/` - Performance visualizations for each component
+- `results/tables/` - Evaluation metrics (WER, accuracy, MOS)
+- `results/audio_samples/` - Generated TTS samples
 
 ## Multilingual Support
 

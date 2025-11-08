@@ -74,12 +74,24 @@ pip install -r requirements.txt
 
 ```
 speech-Processing/
+├── README.md             # This file
+├── STRUCTURE_GUIDE.md    # Guide to project structure design
+│
 ├── lightspeech/          # Lightweight emotion recognition
 ├── fairvoice/            # Bias and fairness in SER
 ├── speech2health/        # Stress and fatigue detection
 ├── openspeech/           # Multilingual voice assistant
 └── project.md            # Original project descriptions
 ```
+
+Each project follows a simplified, student-friendly structure:
+- **code/**: Source code organized by functionality
+- **scripts/**: Numbered scripts showing execution order (01, 02, 03...)
+- **results/**: All outputs for technical report (models, plots, tables)
+- **notebooks/**: Jupyter notebooks for analysis
+- **report/**: Technical report materials
+
+See `STRUCTURE_GUIDE.md` for detailed explanation of the structure design.
 
 ## Research Goals
 

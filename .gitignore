@@ -1,0 +1,88 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Data (keep structure, ignore content)
+**/data/raw/*
+**/data/processed/*
+**/data/features/*
+!**/data/raw/.gitkeep
+!**/data/processed/.gitkeep
+!**/data/features/.gitkeep
+
+# Models and Outputs (keep structure, ignore content)
+**/results/models/*
+**/results/plots/*
+**/results/tables/*
+**/results/logs/*
+!**/results/models/.gitkeep
+!**/results/plots/.gitkeep
+!**/results/tables/.gitkeep
+!**/results/logs/.gitkeep
+
+# Report (keep structure, ignore content)
+**/report/figures/*
+**/report/tables/*
+**/report/draft/*
+!**/report/figures/.gitkeep
+!**/report/tables/.gitkeep
+!**/report/draft/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.log
+*.cache
+
+# Weights & Biases
+wandb/
+
+# MLflow
+mlruns/
+
+# DVC
+.dvc/
+.dvcignore
+
