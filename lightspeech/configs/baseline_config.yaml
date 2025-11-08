@@ -1,0 +1,118 @@
+# LightSpeech Baseline Model Configuration (you can use json format instead of yaml)
+# Dataset Configuration 
+
+dataset:
+  name: "CREMA-D"  # Options: CREMA-D, RAVDESS, Emo-DB
+  data_dir: "data/raw"
+  processed_dir: "data/processed"
+  features_dir: "data/features"
+  
+  # Preprocessing Configuration
+  preprocessing:
+    sample_rate: 16000 # Sampling rate
+    mono: true
+    segment_length: 3.0  # seconds
+    feature_type: "log_mel"  # Options: log_mel, mfcc, chroma # Feature type
+    n_mels: 128 # Number of mel bins
+    n_mfcc: 13 # Number of MFCC coefficients
+    hop_length: 512 # Hop length for MFCC
+    n_fft: 2048 # FFT size
+    
+  split:
+    train: 0.7 # Train split
+    val: 0.15 # Validation split
+    test: 0.15 # Test split
+    random_seed: 42 # Random seed
+    stratify: true # Stratify by emotion
+
+# Model Configuration
+model: # Model name
+  name: "baseline_cnn"  # Options: baseline_cnn, baseline_transformer, baseline_hybrid
+  architecture: # Architecture type
+    type: "CNN"
+    input_size: [128, 300]  # [mel_bins, time_frames]
+    num_classes: 7  # Number of emotion classes
+    
+    # CNN Architecture
+    conv_layers:
+      - filters: 32
+        kernel_size: 3
+        stride: 1
+        padding: 1
+      - filters: 64
+        kernel_size: 3
+        stride: 1
+        padding: 1
+      - filters: 128
+        kernel_size: 3
+        stride: 1
+        padding: 1
+    
+    # Fully Connected Layers
+    fc_layers:
+      - 256
+      - 128
+    
+    dropout: 0.5
+    activation: "relu"
+
+# Training Configuration
+training:
+  batch_size: 32
+  num_epochs: 100
+  learning_rate: 0.001
+  optimizer: "adam"  # Options: adam, adamw, sgd
+  weight_decay: 0.0001
+  scheduler: "cosine"  # Options: cosine, step, plateau
+  
+  # Loss Function
+  loss: "cross_entropy"  # Options: cross_entropy, focal_loss
+  focal_alpha: 0.25
+  focal_gamma: 2.0
+  
+  # Early Stopping
+  early_stopping:
+    enabled: true
+    patience: 10
+    monitor: "val_accuracy"
+    mode: "max"
+  
+  # Checkpointing
+  checkpoint:
+    save_dir: "outputs/models"
+    save_best: true
+    save_frequency: 5  # Save every N epochs
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - accuracy
+    - f1_score
+    - precision
+    - recall
+    - confusion_matrix
+  
+  per_emotion_metrics: true
+  save_predictions: true
+  output_dir: "outputs/reports"
+
+# Experiment Tracking
+tracking:
+  use_wandb: true
+  use_mlflow: false
+  project_name: "lightspeech"
+  experiment_name: "baseline_cnn_crema"
+  
+# Hardware Configuration
+hardware:
+  device: "cuda"  # Options: cuda, cpu, mps
+  num_workers: 4
+  pin_memory: true
+  mixed_precision: false  # Enable for faster training
+
+# Reproducibility
+reproducibility:
+  random_seed: 42
+  deterministic: true
+  cudnn_deterministic: true
+

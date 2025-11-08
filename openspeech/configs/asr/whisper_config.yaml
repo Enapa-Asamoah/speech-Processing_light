@@ -1,0 +1,82 @@
+# OpenSpeech ASR Configuration - Whisper
+
+# Model Configuration
+model:
+  name: "whisper"
+  variant: "base"  # Options: tiny, base, small, medium, large
+  language: "en"  # Language code (en, sw, ha, yo, zu, etc.)
+  device: "cuda"  # Options: cuda, cpu, mps
+  
+  # Fine-tuning (if applicable)
+  fine_tuned: false
+  fine_tuned_path: null
+
+# Audio Preprocessing
+audio:
+  sample_rate: 16000
+  mono: true
+  normalize: true
+  
+  # Voice Activity Detection
+  vad:
+    enabled: true
+    method: "webrtc"
+    aggressiveness: 2
+
+# Inference Configuration
+inference:
+  batch_size: 1
+  beam_size: 5
+  temperature: 0.0
+  best_of: 5
+  patience: 1.0
+  length_penalty: 1.0
+  
+  # Decoding Options
+  decode_options:
+    language: null  # null = auto-detect
+    task: "transcribe"  # Options: transcribe, translate
+    fp16: true
+    verbose: false
+
+# Optimization
+optimization:
+  quantization:
+    enabled: false
+    dtype: "int8"  # Options: int8, float16
+  
+  onnx:
+    enabled: false
+    export_path: "outputs/models/asr/whisper_onnx"
+  
+  pruning:
+    enabled: false
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - wer  # Word Error Rate
+    - cer  # Character Error Rate
+    - latency
+    - rtf  # Real-Time Factor
+  
+  test_datasets:
+    - path: "data/transcriptions/test"
+      language: "en"
+
+# Deployment
+deployment:
+  target: "mobile"  # Options: mobile, edge, desktop, web
+  optimize_for: "latency"  # Options: latency, accuracy, size
+  
+  # Mobile-specific
+  mobile:
+    tflite: false
+    coreml: false  # For iOS
+
+# Experiment Tracking
+tracking:
+  use_wandb: true
+  project_name: "openspeech"
+  experiment_name: "asr_whisper"
+

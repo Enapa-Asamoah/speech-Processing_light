@@ -1,0 +1,88 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Data (keep structure, ignore content)
+data/raw/*
+data/processed/*
+data/features/*
+data/biomarkers/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/features/.gitkeep
+!data/biomarkers/.gitkeep
+
+# Models and Outputs
+outputs/models/*
+outputs/logs/*
+outputs/plots/*
+outputs/reports/*
+outputs/biomarkers/*
+!outputs/models/.gitkeep
+!outputs/logs/.gitkeep
+!outputs/plots/.gitkeep
+!outputs/reports/.gitkeep
+!outputs/biomarkers/.gitkeep
+
+# Experiments
+experiments/*
+!experiments/.gitkeep
+
+# Weights & Biases
+wandb/
+
+# MLflow
+mlruns/
+
+# DVC
+.dvc/
+.dvcignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.log
+*.cache
+

@@ -1,0 +1,91 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Data (keep structure, ignore content)
+data/raw/*
+data/processed/*
+data/transcriptions/*
+data/translations/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/transcriptions/.gitkeep
+!data/translations/.gitkeep
+
+# Models and Outputs
+outputs/models/*
+outputs/logs/*
+outputs/audio_samples/*
+!outputs/models/.gitkeep
+!outputs/logs/.gitkeep
+!outputs/audio_samples/.gitkeep
+
+# Experiments
+experiments/*
+!experiments/.gitkeep
+
+# Weights & Biases
+wandb/
+
+# MLflow
+mlruns/
+
+# DVC
+.dvc/
+.dvcignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.log
+*.cache
+*.wav
+*.mp3
+*.flac
+
+# Mobile deployment
+deployment/mobile/android/app/build/
+deployment/mobile/ios/build/
+

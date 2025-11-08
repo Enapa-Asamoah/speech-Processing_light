@@ -1,0 +1,148 @@
+# Speech2Health Random Forest Configuration
+
+# Dataset Configuration
+dataset:
+  name: "DAIC-WOZ"  # Options: DAIC-WOZ, AVEC2019, SEMAINE
+  data_dir: "data/raw"
+  processed_dir: "data/processed"
+  features_dir: "data/features"
+  
+  preprocessing:
+    sample_rate: 16000
+    mono: true
+    normalize_volume: true
+    
+    # Voice Activity Detection
+    vad:
+      enabled: true
+      method: "webrtc"  # Options: webrtc, energy_based
+      aggressiveness: 2  # 0-3 for WebRTC VAD
+    
+    # Segmentation
+    segment_length: 3.0  # seconds
+    sliding_window: false
+    overlap: 0.0
+    
+    # Feature Extraction
+    features:
+      pitch: true
+      energy: true
+      voice_quality: true  # jitter, shimmer, HNR
+      spectral: true  # MFCCs
+      formants: true
+      prosody: true  # speaking rate, pauses
+
+# Feature Extraction Configuration
+feature_extraction:
+  pitch:
+    method: "pyworld"  # Options: pyworld, parselmouth
+    statistics: ["mean", "std", "min", "max", "range", "jitter"]
+  
+  energy:
+    statistics: ["mean", "std", "min", "max"]
+  
+  voice_quality:
+    jitter: true
+    shimmer: true
+    hnr: true
+  
+  mfcc:
+    n_coeffs: 13
+    delta: true
+    delta_delta: true
+  
+  formants:
+    n_formants: 3
+    statistics: ["mean", "std"]
+  
+  prosody:
+    speaking_rate: true
+    pause_duration: true
+    pause_frequency: true
+
+# Model Configuration
+model:
+  name: "random_forest"
+  type: "classification"  # Options: classification, regression
+  
+  # Random Forest Parameters
+  hyperparameters:
+    n_estimators: 200
+    max_depth: 20
+    min_samples_split: 5
+    min_samples_leaf: 2
+    max_features: "sqrt"
+    bootstrap: true
+    random_state: 42
+    class_weight: "balanced"  # Handle class imbalance
+
+# Training Configuration
+training:
+  # Cross-Validation
+  cv:
+    method: "stratified_kfold"  # Options: kfold, stratified_kfold, leave_one_speaker_out
+    n_splits: 5
+    shuffle: true
+    random_state: 42
+  
+  # Hyperparameter Tuning
+  hyperparameter_tuning:
+    enabled: true
+    method: "random_search"  # Options: grid_search, random_search
+    n_iter: 50
+    cv: 5
+    
+    param_grid:
+      n_estimators: [100, 200, 300, 500]
+      max_depth: [10, 15, 20, 25, 30]
+      min_samples_split: [2, 5, 10]
+      min_samples_leaf: [1, 2, 4]
+
+# Feature Selection
+feature_selection:
+  enabled: true
+  method: "rfe"  # Options: univariate, rfe, importance_based
+  n_features: null  # null = select best features automatically
+  cv: 5
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1_score
+    - roc_auc
+    - pr_auc
+  
+  per_class_metrics: true
+  confusion_matrix: true
+  
+  # Generalization Evaluation
+  generalization:
+    cross_speaker: true
+    cross_session: true
+    leave_one_speaker_out: true
+
+# Biomarker Analysis
+biomarker_analysis:
+  enabled: true
+  methods:
+    - statistical_tests  # t-tests, Mann-Whitney U
+    - feature_importance  # Tree-based importance
+    - shap_analysis
+  
+  output_dir: "outputs/biomarkers"
+  generate_report: true
+
+# Experiment Tracking
+tracking:
+  use_wandb: true
+  project_name: "speech2health"
+  experiment_name: "random_forest_daic"
+
+# Reproducibility
+reproducibility:
+  random_seed: 42
+  deterministic: true
+

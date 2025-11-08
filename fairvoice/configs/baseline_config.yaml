@@ -1,0 +1,109 @@
+# FairVoice Baseline Model Configuration
+
+# Dataset Configuration
+dataset:
+  name: "CREMA-D"  # Options: CREMA-D, RAVDESS, Emo-DB
+  data_dir: "data/raw"
+  processed_dir: "data/processed"
+  features_dir: "data/features"
+  metadata_dir: "data/metadata"
+  
+  preprocessing:
+    sample_rate: 16000
+    mono: true
+    segment_length: 3.0  # seconds
+    feature_type: "log_mel"  # Options: log_mel, mfcc
+    n_mels: 128
+    hop_length: 512
+    n_fft: 2048
+    
+  # Demographic Metadata
+  demographics:
+    extract: true
+    attributes:
+      - gender
+      - ethnicity
+      - accent
+    
+  split:
+    train: 0.7
+    val: 0.15
+    test: 0.15
+    random_seed: 42
+    stratify_by: ["emotion", "gender"]  # Stratify by emotion and demographics
+
+# Model Configuration
+model:
+  name: "baseline_ser"
+  architecture:
+    type: "CNN"
+    input_size: [128, 300]
+    num_classes: 7
+    
+    conv_layers:
+      - filters: 32
+        kernel_size: 3
+      - filters: 64
+        kernel_size: 3
+      - filters: 128
+        kernel_size: 3
+    
+    fc_layers:
+      - 256
+      - 128
+    
+    dropout: 0.5
+
+# Training Configuration
+training:
+  batch_size: 32
+  num_epochs: 100
+  learning_rate: 0.001
+  optimizer: "adam"
+  weight_decay: 0.0001
+  
+  loss: "cross_entropy"
+  early_stopping:
+    enabled: true
+    patience: 10
+    monitor: "val_accuracy"
+
+# Bias Assessment Configuration
+bias_assessment:
+  enabled: true
+  metrics:
+    - demographic_parity
+    - equalized_odds
+    - equal_opportunity
+    - calibration
+  
+  demographic_groups:
+    - gender
+    - ethnicity
+    - accent
+  
+  output_dir: "outputs/bias_analysis"
+  generate_report: true
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - accuracy
+    - f1_score
+    - per_demographic_accuracy
+    - bias_metrics
+  
+  per_emotion_metrics: true
+  per_demographic_metrics: true
+
+# Experiment Tracking
+tracking:
+  use_wandb: true
+  project_name: "fairvoice"
+  experiment_name: "baseline_assessment"
+
+# Reproducibility
+reproducibility:
+  random_seed: 42
+  deterministic: true
+
