@@ -1,66 +1,67 @@
-#!/usr/bin/env python3
 """
-Step 1: Data Preparation Script
-Prepares datasets for training by downloading, preprocessing, and extracting features.
+Script 01: Prepare RAVDESS dataset
 """
+# Temporary workaround for OpenMP runtime conflicts (unsafe): allow duplicate OpenMP libs.
+# This avoids the "Initializing libomp.dll, but found libiomp5md.dll already initialized"
+# error that aborts execution. Prefer fixing the environment long-term (see README).
+import os
+import sys
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+# Ensure project root is on sys.path so `lightspeech` package imports work when
+# the script is executed directly (e.g. python lightspeech/scripts/01_prepare_data.py)
+proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if proj_root not in sys.path:
+    sys.path.insert(0, proj_root)
 
 import argparse
-import sys
-from pathlib import Path
-
-# Add parent directory to path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from code.data.loader import load_dataset
-from code.data.preprocess import preprocess_audio
-from code.data.augment import apply_augmentation
+from lightspeech.code.data.preprocess import AudioPreprocessor
+from lightspeech.code.data.loader import create_splits
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Prepare dataset for training')
-    parser.add_argument('--dataset', type=str, default='CREMA-D',
-                       choices=['CREMA-D', 'RAVDESS', 'Emo-DB'],
-                       help='Dataset to use')
-    parser.add_argument('--data_dir', type=str, default='data/raw',
-                       help='Directory containing raw data')
-    parser.add_argument('--output_dir', type=str, default='data/processed',
-                       help='Output directory for processed data')
-    parser.add_argument('--sample_rate', type=int, default=16000,
-                       help='Target sample rate')
-    parser.add_argument('--segment_length', type=float, default=3.0,
-                       help='Segment length in seconds')
-    
-    args = parser.parse_args()
-    
-    print(f"Preparing {args.dataset} dataset...")
-    print(f"Input: {args.data_dir}")
-    print(f"Output: {args.output_dir}")
-    
-    # Load dataset
-    print("\n[1/3] Loading dataset...")
-    data = load_dataset(args.dataset, args.data_dir)
-    
-    # Preprocess audio
-    print("\n[2/3] Preprocessing audio...")
-    processed_data = preprocess_audio(
-        data,
-        sample_rate=args.sample_rate,
-        segment_length=args.segment_length
+def main(args):
+    print("\n=== STEP 1: Preparing dataset ===")
+
+    # Create output directory if missing
+    os.makedirs(args.output, exist_ok=True)
+
+    print(f"[INFO] Raw data: {args.raw_data}")
+    print(f"[INFO] Output dir: {args.output}")
+    print(f"[INFO] Augmentation: {args.augment}\n")
+
+    # Preprocessor
+    processor = AudioPreprocessor(
+        sample_rate=16000,
+        segment_length=3.0,
+        n_mels=64,
+        augment=args.augment
     )
-    
-    # Apply augmentation (optional)
-    print("\n[3/3] Applying data augmentation...")
-    augmented_data = apply_augmentation(processed_data)
-    
-    # Save processed data
-    output_path = Path(args.output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
-    # TODO: Save processed data
-    
-    print(f"\n✓ Data preparation complete!")
-    print(f"Processed data saved to: {args.output_dir}")
+
+    # Feature extraction
+    print("[INFO] Extracting features...")
+    processor.process_dataset(
+        raw_dataset_path=args.raw_data,
+        output_path=args.output
+    )
+
+    # Dataset splits
+    print("[INFO] Creating train/val/test splits...")
+    create_splits(
+        processed_dir=args.output,
+        seed=42,
+        train_ratio=0.70,
+        val_ratio=0.15,
+        test_ratio=0.15
+    )
+
+    print("\n[SUCCESS] Dataset prepared successfully!")
+    print(f"Processed files saved to: {args.output}\n")
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Prepare audio dataset for training.")
+    parser.add_argument("--raw_data", type=str, required=True, help="Path to raw RAVDESS files")
+    parser.add_argument("--output", type=str, required=True, help="Directory for processed dataset")
+    parser.add_argument("--augment", action="store_true", help="Enable data augmentation")
 
+    args = parser.parse_args()
+    main(args)

@@ -1,62 +1,77 @@
-#!/usr/bin/env python3
 """
-Step 2: Baseline Model Training
-Trains the full-size baseline emotion recognition model.
+Script 02: Train baseline teacher model
 """
 
-import argparse
+import os
 import sys
-from pathlib import Path
-
-sys.path.append(str(Path(__file__).parent.parent))
-
-from code.models.baseline import BaselineModel
-from code.training.trainer import Trainer
-import yaml
+# Temporary workaround for OpenMP runtime conflicts (unsafe): allow duplicate OpenMP libs.
+# This avoids the "Initializing libomp.dll, but found libiomp5md.dll already initialized"
+# error that aborts execution. Prefer fixing the environment long-term (see README).
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+import argparse
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Train baseline model')
-    parser.add_argument('--config', type=str, default='configs/baseline.yaml',
-                       help='Path to configuration file')
-    parser.add_argument('--data_dir', type=str, default='data/processed',
-                       help='Directory containing processed data')
-    parser.add_argument('--output_dir', type=str, default='results/models',
-                       help='Directory to save model checkpoints')
-    
+proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if proj_root not in sys.path:
+    sys.path.insert(0, proj_root)
+
+from lightspeech.code.training.trainer import BaselineTrainer
+from lightspeech.code.models.compression import load_teacher_model
+from lightspeech.code.data.loader import get_dataloaders
+from lightspeech.code.evaluation.visualization import plot_training_curves
+import json
+import os
+
+def main(args):
+    print("=== STEP 2: Training baseline model ===")
+
+    train_loader, val_loader, _ = get_dataloaders(
+        args.data,
+        batch_size=args.batch_size,
+        arch=args.arch
+    )
+
+    model = load_teacher_model(num_classes=args.num_classes, arch=args.arch)
+
+    trainer = BaselineTrainer(
+        model=model,
+        lr=args.lr,
+        epochs=args.epochs,
+        device=args.device
+    )
+
+    history = trainer.train(train_loader, val_loader)
+    # save history JSON
+    os.makedirs(os.path.join(args.output, '..', 'logs'), exist_ok=True)
+    logs_dir = os.path.abspath(os.path.join(args.output, '..', 'logs'))
+    with open(os.path.join(logs_dir, 'baseline_training.json'), 'w') as f:
+        json.dump(history, f)
+
+    # generate plot
+    os.makedirs(os.path.join(args.output, '..', 'plots'), exist_ok=True)
+    plots_dir = os.path.abspath(os.path.join(args.output, '..', 'plots'))
+    # convert history list of dicts to dict of lists expected by plot_training_curves
+    hist_dict = {"train_loss": [h['train_loss'] for h in history],
+                 "val_loss": [h['val_loss'] for h in history],
+                 "train_acc": [h['train_acc'] for h in history],
+                 "val_acc": [h['val_acc'] for h in history]}
+    plot_training_curves(hist_dict, os.path.join(plots_dir, 'baseline_training_curves.png'))
+
+    trainer.save(args.output)
+
+    print(f"Baseline model saved at: {args.output}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data", required=True)
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--epochs", type=int, default=50)
+    parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument("--num_classes", type=int, default=8)
+    parser.add_argument("--device", default="cuda")
+    parser.add_argument("--arch", default="cnn2d", help="Model architecture: cnn2d|mobilenet|efficientnet|transformer")
     args = parser.parse_args()
-    
-    # Load configuration
-    with open(args.config, 'r') as f:
-        config = yaml.safe_load(f)
-    
-    print("Training Baseline Model")
-    print(f"Config: {args.config}")
-    print(f"Data: {args.data_dir}")
-    print(f"Output: {args.output_dir}")
-    
-    # Initialize model
-    print("\n[1/4] Initializing model...")
-    model = BaselineModel(config['model'])
-    
-    # Initialize trainer
-    print("\n[2/4] Setting up trainer...")
-    trainer = Trainer(model, config['training'], args.data_dir)
-    
-    # Train model
-    print("\n[3/4] Training model...")
-    trainer.train()
-    
-    # Save model
-    print("\n[4/4] Saving model...")
-    output_path = Path(args.output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
-    trainer.save_model(output_path / 'baseline.pth')
-    
-    print(f"\n✓ Training complete!")
-    print(f"Model saved to: {output_path / 'baseline.pth'}")
 
-
-if __name__ == '__main__':
-    main()
-
+    main(args)
