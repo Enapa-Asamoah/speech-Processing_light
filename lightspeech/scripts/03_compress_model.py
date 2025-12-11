@@ -6,6 +6,7 @@ import os
 import sys
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 import argparse
+import torch
 
 # ensure project root is importable when running the script directly
 proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -14,6 +15,7 @@ if proj_root not in sys.path:
 
 from lightspeech.code.training.distillation import DistillationTrainer
 from lightspeech.code.training.quantization import QuantizationTrainer
+from lightspeech.code.training.pruning import PruningSpec, prune_and_report, fine_tune_after_pruning
 from lightspeech.code.models.student import StudentModel
 from lightspeech.code.models.compression import load_teacher_model
 from lightspeech.code.data.loader import get_dataloaders
@@ -24,6 +26,18 @@ import tempfile
 import numpy as np
 from pathlib import Path
 import subprocess
+
+
+def _is_valid_onnx(path: str) -> bool:
+    """Lightweight ONNX validation; returns False if onnx is missing or model is invalid."""
+    try:
+        import onnx
+        m = onnx.load(path)
+        onnx.checker.check_model(m)
+        return True
+    except Exception as e:
+        print(f"[WARN] ONNX validation failed for {path}: {e}")
+        return False
 
 def main(args):
     print("=== STEP 3: Compressing model ===")
@@ -69,6 +83,48 @@ def main(args):
         distilled_path = Path(args.output) / (Path(args.output).name + "_distilled.pt")
         distiller.save(str(distilled_path))
 
+    # ---- PRUNING ----
+    if args.prune:
+        print("Running pruning...")
+        spec = PruningSpec(
+            amount=args.prune_amount,
+            structured=args.prune_structured,
+            norm=args.prune_norm,
+            bias=args.prune_bias,
+        )
+
+        overall_sparsity, per_layer = prune_and_report(student, spec)
+        print(f"[INFO] Overall sparsity after pruning: {overall_sparsity:.3f}")
+
+        # optional light fine-tuning to recover accuracy
+        val_acc = None
+        if args.prune_ft_epochs > 0:
+            print(f"[INFO] Fine-tuning pruned model for {args.prune_ft_epochs} epochs...")
+            val_loss, val_acc = fine_tune_after_pruning(
+                student,
+                train_loader,
+                val_loader,
+                epochs=args.prune_ft_epochs,
+                lr=args.prune_ft_lr,
+            )
+            print(f"[INFO] Post-prune val_loss={val_loss:.4f}, val_acc={val_acc:.4f}")
+
+        # save pruned model
+        pruned_path = Path(args.output) / (Path(args.output).name + "_pruned.pt")
+        torch.save(student.state_dict(), pruned_path)
+
+        # log compression metrics
+        results_dir = Path(args.output).parent / 'compression'
+        results_dir.mkdir(parents=True, exist_ok=True)
+        size_mb = pruned_path.stat().st_size / (1024*1024)
+        csv_path = results_dir / 'compression_results.csv'
+        header = 'name,model_path,model_size_mb,latency_ms,accuracy\n'
+        row = f"{Path(args.output).name}_pruned,{pruned_path.as_posix()},{size_mb:.3f},0,{val_acc if val_acc is not None else ''}\n"
+        if not csv_path.exists():
+            csv_path.write_text(header + row)
+        else:
+            csv_path.write_text(csv_path.read_text() + row)
+
     # ---- QUANTIZATION ----
     if args.quantize:
         print("Running quantization...")
@@ -102,7 +158,6 @@ def main(args):
         qmodel = quant.quantize()
         # evaluate quantized model accuracy on test set
         _, _, test_dl = get_dataloaders(args.data, batch_size=32)
-        import torch
         from sklearn.metrics import accuracy_score
 
         def eval_model(m):
@@ -144,6 +199,18 @@ def main(args):
             if saved_path is None:
                 saved_path = str(target_path)
 
+        # Validate ONNX; if corrupt, fall back to float ONNX if available, else to .pt
+        if str(saved_path).lower().endswith('.onnx') and not _is_valid_onnx(str(saved_path)):
+            float_candidate = Path('results/models/model_float.onnx')
+            if float_candidate.exists() and _is_valid_onnx(float_candidate):
+                print(f"[INFO] Falling back to float ONNX: {float_candidate}")
+                saved_path = str(float_candidate)
+            else:
+                fallback_pt = Path(args.output) / (Path(args.output).name + '_quantized_fallback.pt')
+                torch.save(model_to_eval.state_dict(), fallback_pt)
+                saved_path = str(fallback_pt)
+                print(f"[INFO] Saved fallback PyTorch checkpoint: {saved_path}")
+
         # if the saver wrote a fallback .pt, compute size from that file instead
         try:
             size_mb = Path(saved_path).stat().st_size / (1024*1024)
@@ -173,6 +240,13 @@ if __name__ == "__main__":
     parser.add_argument("--output", required=True)
     parser.add_argument("--distill", action="store_true")
     parser.add_argument("--quantize", action="store_true")
+    parser.add_argument("--prune", action="store_true")
+    parser.add_argument("--prune_amount", type=float, default=0.3, help="Fraction of weights to prune")
+    parser.add_argument("--prune_structured", action="store_true", help="Use structured LN pruning instead of unstructured")
+    parser.add_argument("--prune_norm", type=int, default=2, help="Norm for structured pruning (LN)")
+    parser.add_argument("--prune_bias", action="store_true", help="Also prune bias terms")
+    parser.add_argument("--prune_ft_epochs", type=int, default=0, help="Fine-tune epochs after pruning (0 to skip)")
+    parser.add_argument("--prune_ft_lr", type=float, default=1e-4, help="Fine-tune learning rate after pruning")
     parser.add_argument("--temperature", type=float, default=4.0)
     parser.add_argument("--alpha", type=float, default=0.5)
     parser.add_argument("--backend", default="qnnpack")

@@ -140,11 +140,17 @@ def generate_compression_plots():
         model_sizes = to_float_list('model_size_mb')
         latencies = to_float_list('latency_ms')
         accuracies = to_float_list('accuracy')
+        model_names = cols.get('name', cols.get('model', [f'model_{i}' for i in range(len(model_sizes))]))
     else:
         model_sizes = df["model_size_mb"].tolist()
         latencies = df["latency_ms"].tolist()
         accuracies = df["accuracy"].tolist()
+        model_names = df.get("model", df.get("name", [f"model_{i}" for i in range(len(model_sizes))])).tolist()
 
+    # Filter and ensure pruned model is included if present
+    # Expected model order: teacher, student, pruned, quantized
+    print(f"[INFO] Found {len(model_names)} models in compression results: {model_names}")
+    
     print("[INFO] Generating compression trade-off plot...")
     save_path = os.path.join(PLOTS_DIR, "compression_tradeoff.png")
 

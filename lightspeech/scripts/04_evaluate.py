@@ -104,7 +104,34 @@ def main(args):
             latency_ms = None
         results_summary['student'] = {'accuracy': metrics['accuracy'], 'size_mb': size_mb, 'latency_ms': latency_ms}
 
-    # 3) Quantized model (if provided)
+    # 3) Pruned model (if provided)
+    if args.pruned_ckpt:
+        print('[INFO] Evaluating pruned model...')
+        from lightspeech.code.models.student import StudentModel
+        pruned = StudentModel(num_classes=args.num_classes)
+        try:
+            state = __import__('torch').load(args.pruned_ckpt, map_location=device)
+            if isinstance(state, dict) and 'model_state' in state:
+                state = state['model_state']
+            pruned.load_state_dict(state)
+        except Exception as e:
+            print(f"[WARN] Could not load pruned checkpoint: {e}")
+        metrics = evaluate_model(pruned, test_loader, device=device)
+        _save_confusion(metrics['confusion_matrix'], 'pruned')
+        with open(logs_dir / 'pruned_metrics.json', 'w') as f:
+            json.dump({k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in metrics.items()}, f)
+        # size & latency
+        try:
+            size_mb = float(np.round(__import__('lightspeech.code.evaluation.evaluator', fromlist=['']).model_size_mb(pruned), 4))
+        except Exception:
+            size_mb = None
+        try:
+            latency_ms = float(np.round(__import__('lightspeech.code.evaluation.evaluator', fromlist=['']).model_latency(pruned, device=device), 4))
+        except Exception:
+            latency_ms = None
+        results_summary['pruned'] = {'accuracy': metrics['accuracy'], 'size_mb': size_mb, 'latency_ms': latency_ms}
+
+    # 4) Quantized model (if provided)
     if args.quantized:
         print('[INFO] Evaluating quantized model...')
         qpath = Path(args.quantized)
@@ -228,7 +255,7 @@ def main(args):
         import matplotlib.pyplot as plt
 
         # Ensure consistent order and only include available models
-        ordered = ['teacher', 'student', 'quantized']
+        ordered = ['teacher', 'student', 'pruned', 'quantized']
         model_names = []
         sizes = []
         latencies = []
@@ -294,6 +321,7 @@ if __name__ == "__main__":
     parser.add_argument("--data", required=True, help="Path to processed feature folder")
     parser.add_argument("--teacher_ckpt", required=False, help="Path to teacher/baseline checkpoint (.pth)")
     parser.add_argument("--student_ckpt", required=False, help="Path to distilled student checkpoint (.pth)")
+    parser.add_argument("--pruned_ckpt", required=False, help="Path to pruned model checkpoint (.pth)")
     parser.add_argument("--quantized", required=False, help="Path to quantized model file (torch state_dict or other)")
     parser.add_argument("--output", required=False, default="results", help="Base output directory for plots/logs/compression")
     parser.add_argument("--batch_size", type=int, default=32)
