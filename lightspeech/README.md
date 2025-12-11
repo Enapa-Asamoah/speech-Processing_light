@@ -91,16 +91,16 @@ The project follows a simple step-by-step workflow. Run scripts in order:
 
 ```bash
 # Step 1: Prepare data
-python scripts/01_prepare_data.py --dataset CREMA-D
+python scripts/01_prepare_data.py --raw_data data/raw --output data/processed --augment  
 
 # Step 2: Train baseline model
-python scripts/02_train_baseline.py --config configs/baseline.yaml
+python scripts/02_train_baseline.py --data data/processed --output results/models --device cpu --epochs 30
 
 # Step 3: Compress model
-python scripts/03_compress_model.py --method distillation
+python scripts/03_compress_model.py --teacher_ckpt results/models/baseline_model.pth --output results/models --epochs 30 --distill --quantize --prune --data data/processed
 
 # Step 4: Evaluate models
-python scripts/04_evaluate.py
+python scripts/04_evaluate.py --data data/processed --teacher_ckpt results/models/baseline_model.pth --student_ckpt results/models/models_distilled.pt --pruned_ckpt results/models/models_pruned.pt --quantized results/models/models_quantized_fallback.pt --output results --device cpu
 
 # Step 5: Generate plots for report
 python scripts/05_generate_plots.py
@@ -123,9 +123,7 @@ All outputs are saved in the `results/` directory:
 
 ## Datasets
 
-- **CREMA-D**: Crowd-sourced Emotional Multimodal Actors Dataset
 - **RAVDESS**: Ryerson Audio-Visual Database of Emotional Speech and Song
-- **Emo-DB**: Berlin Database of Emotional Speech
 
 ## Research Contributions
 
@@ -150,7 +148,7 @@ This is a research project. For questions or contributions, please contact the p
 
 ## License
 
-[Specify license]
+
 
 ## Acknowledgments
 

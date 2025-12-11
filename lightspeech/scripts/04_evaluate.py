@@ -144,10 +144,11 @@ def main(args):
             qmodel = StudentModel(num_classes=args.num_classes)
             st = None
             try:
-                st = __import__('torch').load(str(qpath), map_location=device)
+                st = torch.load(str(qpath), map_location=device)
                 if isinstance(st, dict) and 'model_state' in st:
                     st = st['model_state']
-                qmodel.load_state_dict(st)
+                qmodel.load_state_dict(st, strict=False)
+                print(f'[INFO] Loaded quantized model from {qpath}')
                 metrics = evaluate_model(qmodel, test_loader, device=device)
                 _save_confusion(metrics['confusion_matrix'], 'quantized')
                 q_accuracy = metrics['accuracy']
@@ -159,7 +160,8 @@ def main(args):
                     q_latency = float(np.round(__import__('lightspeech.code.evaluation.evaluator', fromlist=['']).model_latency(qmodel, device=device), 4))
                 except Exception:
                     q_latency = None
-            except Exception:
+            except Exception as e:
+                print(f'[WARN] Failed to load quantized model as PyTorch: {e}')
                 # not a torch model - use file size as size proxy
                 q_size = qpath.stat().st_size / 1e6
                 # If it's an ONNX model, try to evaluate with onnxruntime

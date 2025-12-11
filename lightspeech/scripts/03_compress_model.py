@@ -14,7 +14,7 @@ if proj_root not in sys.path:
     sys.path.insert(0, proj_root)
 
 from lightspeech.code.training.distillation import DistillationTrainer
-from lightspeech.code.training.quantization import QuantizationTrainer
+from lightspeech.code.training.quantization import QuantizationTrainer, QATTrainer
 from lightspeech.code.training.pruning import PruningSpec, prune_and_report, fine_tune_after_pruning
 from lightspeech.code.models.student import StudentModel
 from lightspeech.code.models.compression import load_teacher_model
@@ -245,7 +245,7 @@ if __name__ == "__main__":
     parser.add_argument("--prune_structured", action="store_true", help="Use structured LN pruning instead of unstructured")
     parser.add_argument("--prune_norm", type=int, default=2, help="Norm for structured pruning (LN)")
     parser.add_argument("--prune_bias", action="store_true", help="Also prune bias terms")
-    parser.add_argument("--prune_ft_epochs", type=int, default=0, help="Fine-tune epochs after pruning (0 to skip)")
+    parser.add_argument("--prune_ft_epochs", type=int, default=20, help="Fine-tune epochs after pruning (0 to skip)")
     parser.add_argument("--prune_ft_lr", type=float, default=1e-4, help="Fine-tune learning rate after pruning")
     parser.add_argument("--temperature", type=float, default=4.0)
     parser.add_argument("--alpha", type=float, default=0.5)
