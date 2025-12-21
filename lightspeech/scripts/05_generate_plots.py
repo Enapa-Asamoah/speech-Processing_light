@@ -39,19 +39,89 @@ os.makedirs(COMPRESS_DIR, exist_ok=True)
 # 1. TRAINING CURVES (Loss + Accuracy)
 # ---------------------------------------------------------
 
+def load_training_log(log_path):
+    """Load and normalize a single training log to the expected keys."""
+    if not os.path.exists(log_path):
+        raise FileNotFoundError(log_path)
+
+    with open(log_path, "r") as f:
+        raw = json.load(f)
+
+    # Accept either list-of-epochs or dict-of-lists
+    if isinstance(raw, list) and raw:
+        train_loss = [e.get("train_loss", e.get("loss")) for e in raw]
+        val_loss = [e.get("val_loss") for e in raw]
+        train_acc = [e.get("train_acc", e.get("acc")) for e in raw]
+        val_acc = [e.get("val_acc", e.get("val_accuracy")) for e in raw]
+    elif isinstance(raw, dict):
+        train_loss = raw.get("train_loss", raw.get("loss", []))
+        val_loss = raw.get("val_loss", [])
+        train_acc = raw.get("train_acc", raw.get("acc", []))
+        val_acc = raw.get("val_acc", raw.get("val_accuracy", []))
+    else:
+        raise ValueError("Unsupported training log format")
+
+    # Convert None to empty list for plotting friendliness
+    def _coalesce(values):
+        if values is None:
+            return []
+        return values
+
+    train_loss = _coalesce(train_loss)
+    val_loss = _coalesce(val_loss)
+    train_acc = _coalesce(train_acc)
+    val_acc = _coalesce(val_acc)
+
+    # Convert accuracies from [0,1] to percentages if needed
+    def _to_pct(seq):
+        out = []
+        for v in seq:
+            if v is None:
+                out.append(None)
+            elif isinstance(v, (int, float)) and v <= 1.0:
+                out.append(v * 100)
+            else:
+                out.append(v)
+        return out
+
+    train_acc = _to_pct(train_acc)
+    val_acc = _to_pct(val_acc)
+
+    return {
+        "train_loss": train_loss,
+        "val_loss": val_loss,
+        "train_acc": train_acc,
+        "val_acc": val_acc,
+    }
+
 def generate_training_curves():
-    history_path = os.path.join(LOGS_DIR, "baseline_training.json")
+    baseline_history_path = os.path.join(LOGS_DIR, "baseline_training.json")
+    distillation_history_path = os.path.join(LOGS_DIR, "distillation_training.json")
 
-    if not os.path.exists(history_path):
-        print("[WARN] No baseline_training.json found. Skipping training curves.")
-        return
+    # Baseline
+    if os.path.exists(baseline_history_path):
+        try:
+            baseline_history = load_training_log(baseline_history_path)
+            print("[INFO] Generating baseline training curves...")
+            save_path = os.path.join(PLOTS_DIR, "baseline_training_curves.png")
+            plot_training_curves(baseline_history, save_path)
+        except Exception as exc:
+            print(f"[WARN] Failed to plot baseline curves: {exc}")
+    else:
+        print("[WARN] No baseline_training.json found. Skipping baseline curves.")
 
-    with open(history_path, "r") as f:
-        history = json.load(f)
+    # Distillation
+    if os.path.exists(distillation_history_path):
+        try:
+            distillation_history = load_training_log(distillation_history_path)
+            print("[INFO] Generating distillation training curves...")
+            save_path = os.path.join(PLOTS_DIR, "distillation_training_curves.png")
+            plot_training_curves(distillation_history, save_path)
+        except Exception as exc:
+            print(f"[WARN] Failed to plot distillation curves: {exc}")
+    else:
+        print("[WARN] No distillation_training.json found. Skipping distillation curves.")
 
-    print("[INFO] Generating training curves...")
-    save_path = os.path.join(PLOTS_DIR, "baseline_training_curves.png")
-    plot_training_curves(history, save_path)
 
 
 # ---------------------------------------------------------

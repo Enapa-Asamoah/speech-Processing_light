@@ -248,14 +248,14 @@ This document provides a detailed implementation guide for the LightSpeech proje
 **Objective**: Deploy models to target devices
 
 **Tasks**:
-- [ ] ONNX conversion (`src/deployment/onnx_converter.py`)
-- [ ] TensorFlow Lite conversion (`src/deployment/tflite_converter.py`)
+- [ ] ONNX conversion (`code/deployment/onnx_converter.py`)
+- [ ] TensorFlow Lite conversion (`code/deployment/tflite_converter.py`)
 - [ ] Deployment scripts for each platform
 - [ ] Inference optimization
 
 **Key Files**:
-- `src/deployment/onnx_converter.py`
-- `src/deployment/tflite_converter.py`
+- `code/deployment/onnx_converter.py`
+- `code/deployment/tflite_converter.py`
 - `scripts/deployment/deploy_raspberry_pi.sh`
 - `scripts/deployment/deploy_android.sh`
 
